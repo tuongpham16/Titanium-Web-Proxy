@@ -290,7 +290,7 @@ namespace Titanium.Web.Proxy.Network.Tcp
             bool prefetch, CancellationToken cancellationToken)
         {
             // deny connection to proxy end points to avoid infinite connection loop.
-            if (Server.ProxyEndPoints.Any(x => x.Port == remotePort) 
+            if (Server.ProxyEndPoints.Any(x => x.Port == remotePort)
                 && NetworkHelper.IsLocalIpAddress(remoteHostName))
             {
                 throw new Exception($"A client is making HTTP request to one of the listening ports of this proxy {remoteHostName}:{remotePort}");
@@ -378,7 +378,7 @@ retry:
 
                         if (socks)
                         {
-                            var proxySocket = new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+                            var proxySocket = new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, addressFamily == AddressFamily.InterNetworkV6 ? ProtocolType.IP : ProtocolType.Tcp);
                             proxySocket.ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
                                 ? ProxyTypes.Socks4
                                 : ProxyTypes.Socks5;
@@ -394,9 +394,12 @@ retry:
                         }
                         else
                         {
-                            tcpServerSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
+                            tcpServerSocket = new Socket(addressFamily, SocketType.Stream, addressFamily == AddressFamily.InterNetworkV6? ProtocolType.IP : ProtocolType.Tcp);
                         }
-
+                        if (addressFamily == AddressFamily.InterNetworkV6)
+                        {
+                            tcpServerSocket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+                        }
                         if (upStreamEndPoint != null)
                         {
                             tcpServerSocket.Bind(upStreamEndPoint);
@@ -413,7 +416,7 @@ retry:
                         }
 
                         Task connectTask;
-                            
+
                         if (socks)
                         {
                             if (externalProxy!.ProxyDnsRequests)
