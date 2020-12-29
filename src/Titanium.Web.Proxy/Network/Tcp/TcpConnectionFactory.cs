@@ -10,6 +10,7 @@ using System.Security.Authentication;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient;
 using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Extensions;
 using Titanium.Web.Proxy.Helpers;
@@ -351,6 +352,16 @@ retry:
                 }
 
                 var ipAddresses = await Dns.GetHostAddressesAsync(hostname);
+                if (upStreamEndPoint?.AddressFamily == AddressFamily.InterNetworkV6 && !ipAddresses.Any(ip => ip.AddressFamily == AddressFamily.InterNetworkV6))
+                {
+                    var lookup = new LookupClient();
+                    var result = await lookup.GetHostEntryAsync(hostname);
+                    ipAddresses = result.AddressList;
+                }
+                if (upStreamEndPoint?.AddressFamily == AddressFamily.InterNetworkV6)
+                {
+                    ipAddresses = ipAddresses.Where(t => t.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
+                }
                 if (ipAddresses == null || ipAddresses.Length == 0)
                 {
                     if (prefetch)
@@ -378,7 +389,7 @@ retry:
 
                         if (socks)
                         {
-                            var proxySocket = new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, addressFamily == AddressFamily.InterNetworkV6 ? ProtocolType.IP : ProtocolType.Tcp);
+                            var proxySocket = new ProxySocket.ProxySocket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
                             proxySocket.ProxyType = externalProxy!.ProxyType == ExternalProxyType.Socks4
                                 ? ProxyTypes.Socks4
                                 : ProxyTypes.Socks5;
@@ -394,11 +405,7 @@ retry:
                         }
                         else
                         {
-                            tcpServerSocket = new Socket(addressFamily, SocketType.Stream, addressFamily == AddressFamily.InterNetworkV6? ProtocolType.IP : ProtocolType.Tcp);
-                        }
-                        if (addressFamily == AddressFamily.InterNetworkV6)
-                        {
-                            tcpServerSocket.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+                            tcpServerSocket = new Socket(addressFamily, SocketType.Stream, ProtocolType.Tcp);
                         }
                         if (upStreamEndPoint != null)
                         {

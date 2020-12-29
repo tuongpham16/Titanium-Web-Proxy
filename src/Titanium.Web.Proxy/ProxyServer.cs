@@ -672,7 +672,7 @@ namespace Titanium.Web.Proxy
         private void listen(ProxyEndPoint endPoint)
         {
             endPoint.Listener = new TcpListener(endPoint.IpAddress, endPoint.Port);
-
+           // endPoint.Listener.Server.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
             if (ReuseSocket && RunTime.IsSocketReuseAvailable)
             {
                 endPoint.Listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -797,7 +797,6 @@ namespace Titanium.Web.Proxy
             tcpClientSocket.SendTimeout = ConnectionTimeOutSeconds * 1000;
 
             tcpClientSocket.LingerState = new LingerOption(true, TcpTimeWaitSeconds);
-
             await InvokeClientConnectionCreateEvent(tcpClientSocket);
 
             using (var clientConnection = new TcpClientConnection(this, tcpClientSocket))
