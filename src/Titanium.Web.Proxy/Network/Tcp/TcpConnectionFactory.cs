@@ -354,8 +354,7 @@ retry:
                 var ipAddresses = await Dns.GetHostAddressesAsync(hostname);
                 if (upStreamEndPoint?.AddressFamily == AddressFamily.InterNetworkV6 && !ipAddresses.Any(ip => ip.AddressFamily == AddressFamily.InterNetworkV6))
                 {
-                    var lookup = new LookupClient();
-                    var result = await lookup.GetHostEntryAsync(hostname);
+                    var result = await LookupService.LookupClient.GetHostEntryAsync(hostname);
                     ipAddresses = result.AddressList;
                 }
                 if (upStreamEndPoint?.AddressFamily == AddressFamily.InterNetworkV6)
