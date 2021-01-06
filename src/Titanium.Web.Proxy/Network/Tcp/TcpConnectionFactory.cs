@@ -357,10 +357,12 @@ retry:
                     var result = await LookupService.LookupClient.GetHostEntryAsync(hostname);
                     ipAddresses = result.AddressList;
                 }
+
                 if (upStreamEndPoint?.AddressFamily == AddressFamily.InterNetworkV6)
                 {
                     ipAddresses = ipAddresses.Where(t => t.AddressFamily == AddressFamily.InterNetworkV6).ToArray();
                 }
+
                 if (ipAddresses == null || ipAddresses.Length == 0)
                 {
                     if (prefetch)
